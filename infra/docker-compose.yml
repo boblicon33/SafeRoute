@@ -1,0 +1,35 @@
+services:
+  # Наша база данных для сервисов
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: saferoute-postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: saferoute_shop
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - saferoute-network
+
+  # Наш брокер сообщений (очередь)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: saferoute-rabbitmq
+    ports:
+      - "5672:5672"   # Порт для отправки сообщений из C#
+      - "15672:15672" # Порт для красивой админки RabbitMQ в браузере
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - saferoute-network
+
+volumes:
+  postgres_data:
+
+networks:
+  saferoute-network:
+    driver: bridge
