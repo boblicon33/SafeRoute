@@ -1,41 +1,37 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// 1. РЕГИСТРАЦИЯ SWAGGER (Добавить эти строки)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 2. ВКЛЮЧЕНИЕ SWAGGER (Добавить эти строки)
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(); 
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+// Наш первый эндпоинт для создания заказа
+app.MapPost("/orders", (OrderRequest request) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    // Пока просто возвращаем то, что получили, добавляя ID
+    var order = new OrderResponse(
+        Guid.NewGuid(),
+        request.ProductName,
+        request.Quantity,
+        DateTime.UtcNow
+    );
+    
+    return Results.Ok(order); 
+});
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+// класс запроса от клиента
+public record OrderRequest(string ProductName, int Quantity);
+//класс ответа от сервера
+public record OrderResponse(Guid Id, string ProductName, int Quantity, DateTime CreatedAt);
