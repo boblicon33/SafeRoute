@@ -1,12 +1,20 @@
+using Microsoft.EntityFrameworkCore;
+using SafeRoute.OrderService.Data;
+using SafeRoute.OrderService.Models;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. РЕГИСТРАЦИЯ SWAGGER (Добавить эти строки)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Регистрация DbContext
+builder.Services.AddDbContext<OrderDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 var app = builder.Build();
 
-// 2. ВКЛЮЧЕНИЕ SWAGGER (Добавить эти строки)
+// включаем сваггер в девелопмент режиме
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -15,18 +23,27 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Наш первый эндпоинт для создания заказа
-app.MapPost("/orders", (OrderRequest request) =>
+app.MapPost("/orders", async (OrderRequest request, OrderDbContext db) =>
 {
-    // Пока просто возвращаем то, что получили, добавляя ID
-    var order = new OrderResponse(
-        Guid.NewGuid(),
-        request.ProductName,
-        request.Quantity,
-        DateTime.UtcNow
+    var order = new Order
+    {
+        Id = Guid.NewGuid(),
+        ProductName = request.ProductName,
+        Quantity = request.Quantity,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    db.Orders.Add(order);
+    await db.SaveChangesAsync();
+
+    var response = new OrderResponse(
+        order.Id,
+        order.ProductName,
+        order.Quantity,
+        order.CreatedAt
     );
-    
-    return Results.Ok(order); 
+
+    return Results.Ok(response);
 });
 
 app.Run();
