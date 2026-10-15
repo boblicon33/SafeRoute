@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using SafeRoute.OrderService.Data;
 using SafeRoute.OrderService.Models;
+using System.ComponentModel.DataAnnotations;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddValidation(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -33,8 +35,16 @@ app.MapPost("/orders", async (OrderRequest request, OrderDbContext db) =>
         CreatedAt = DateTime.UtcNow
     };
 
-    db.Orders.Add(order);
-    await db.SaveChangesAsync();
+    try
+    {
+        db.Orders.Add(order);
+        await db.SaveChangesAsync(); // нужен await
+    }
+    catch
+    {
+        return Results.Problem("Не удалось создать заказ");
+    }
+
 
     var response = new OrderResponse(
         order.Id,
@@ -49,6 +59,12 @@ app.MapPost("/orders", async (OrderRequest request, OrderDbContext db) =>
 app.Run();
 
 // класс запроса от клиента
-public record OrderRequest(string ProductName, int Quantity);
+public record OrderRequest(
+    [Required] // обязательно
+    [StringLength(100, MinimumLength = 1)] // длина от 1 до 100 чаров
+    string ProductName,
+
+    [Range(1, int.MaxValue)] // quantity от 1 до максимального инта
+     int Quantity);
 //класс ответа от сервера
 public record OrderResponse(Guid Id, string ProductName, int Quantity, DateTime CreatedAt);
