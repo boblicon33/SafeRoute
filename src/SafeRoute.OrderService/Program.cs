@@ -4,9 +4,20 @@ using SafeRoute.OrderService.Models;
 using System.ComponentModel.DataAnnotations;
 using SafeRoute.Shared.Events;
 using MassTransit;
-
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// настройка Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.File("logs/order-service-.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 builder.Services.AddValidation(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -37,6 +48,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseSerilogRequestLogging();
 
 app.MapPost("/orders", async (OrderRequest request, OrderDbContext db,
  IPublishEndpoint publishEndpoint) =>
