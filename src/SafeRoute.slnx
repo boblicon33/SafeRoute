@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="SafeRoute.OrderService/SafeRoute.OrderService.csproj" />
   <Project Path="SafeRoute.DeliveryService/SafeRoute.DeliveryService.csproj" />
+  <Project Path="SafeRoute.MonitorService/SafeRoute.MonitorService.csproj" />
   <Project Path="SafeRoute.Shared/SafeRoute.Shared.csproj" />
 </Solution>

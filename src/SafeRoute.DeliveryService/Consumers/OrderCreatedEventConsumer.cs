@@ -11,11 +11,13 @@ public class OrderCreatedEventConsumer : IConsumer<OrderCreatedEvent>
 
     private readonly DeliveryDbContext _db;
     private readonly ILogger<OrderCreatedEventConsumer> _logger;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public OrderCreatedEventConsumer(DeliveryDbContext db, ILogger<OrderCreatedEventConsumer> logger)
+    public OrderCreatedEventConsumer(DeliveryDbContext db, ILogger<OrderCreatedEventConsumer> logger, IPublishEndpoint publishEndpoint)
     {
         _db = db;
         _logger = logger;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
@@ -35,7 +37,7 @@ public class OrderCreatedEventConsumer : IConsumer<OrderCreatedEvent>
 
         try
         {
-            if (attempt % 5 == 0)
+            if (attempt <= 3)
                 throw new Exception("Delivery service API is unavailable");
 
             delivery.Status = "Processed";
@@ -45,6 +47,24 @@ public class OrderCreatedEventConsumer : IConsumer<OrderCreatedEvent>
             delivery.Status = "Failed";
             delivery.FailureReason = ex.Message;
             _logger.LogError(ex, "Delivery failed for order {OrderId}", message.OrderId);
+        }
+
+        if (delivery.Status == "Processed")
+        {
+            await _publishEndpoint.Publish(new DeliveryProcessedEvent
+            {
+                OrderId = message.OrderId,
+                ProcessedAt = delivery.ProcessedAt
+            });
+        }
+        else
+        {
+            await _publishEndpoint.Publish(new DeliveryFailedEvent
+            {
+                OrderId = message.OrderId,
+                Reason = delivery.FailureReason ?? string.Empty,
+                FailedAt = delivery.ProcessedAt
+            });
         }
 
         _db.Deliveries.Add(delivery);
