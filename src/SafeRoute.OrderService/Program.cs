@@ -28,6 +28,12 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", "/", h =>
@@ -61,17 +67,9 @@ app.MapPost("/orders", async (OrderRequest request, OrderDbContext db,
         CreatedAt = DateTime.UtcNow
     };
 
-    try
-    {
-        db.Orders.Add(order);
-        await db.SaveChangesAsync(); // нужен await
-    }
-    catch
-    {
-        return Results.Problem("Не удалось создать заказ");
-    }
+    db.Orders.Add(order);
 
-    // публикуем событие в RabbitMQ
+    // Сначала Publish — MassTransit перехватит и положит событие в Outbox (не в RabbitMQ напрямую)
     await publishEndpoint.Publish(new OrderCreatedEvent
     {
         OrderId = order.Id,
@@ -79,6 +77,9 @@ app.MapPost("/orders", async (OrderRequest request, OrderDbContext db,
         Quantity = order.Quantity,
         CreatedAt = order.CreatedAt
     });
+
+    // Потом SaveChanges — атомарно сохранит и заказ, и сообщение в Outbox в одной транзакции
+    await db.SaveChangesAsync();
 
     var response = new OrderResponse(order.Id, order.ProductName, order.Quantity, order.CreatedAt);
     return Results.Ok(response);

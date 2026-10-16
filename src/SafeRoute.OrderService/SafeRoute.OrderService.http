@@ -1,6 +1,11 @@
 @SafeRoute.OrderService_HostAddress = http://localhost:5057
 
-GET {{SafeRoute.OrderService_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{SafeRoute.OrderService_HostAddress}}/orders
+Content-Type: application/json
+
+{
+  "productName": "Sample Product",
+  "quantity": 2
+}
 
 ###
