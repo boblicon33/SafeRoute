@@ -37,7 +37,7 @@ public class OrderCreatedEventConsumer : IConsumer<OrderCreatedEvent>
 
         try
         {
-            if (attempt <= 3)
+            if (attempt % 3 == 0)
                 throw new Exception("Delivery service API is unavailable");
 
             delivery.Status = "Processed";

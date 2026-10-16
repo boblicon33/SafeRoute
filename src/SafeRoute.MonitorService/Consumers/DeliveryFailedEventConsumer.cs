@@ -34,7 +34,7 @@ public class DeliveryFailedEventConsumer : IConsumer<DeliveryFailedEvent>
 
         if (count >= threshold)
         {
-            var text = $"🚨 DeliveryService failed {count} times in a row. Last order: {message.OrderId}. Reason: {message.Reason}.";
+            var text = $"🚨 DeliveryService failed {count} times. Last order: {message.OrderId}. Reason: {message.Reason}.";
 
             var alertSent = false;
             try
@@ -57,7 +57,7 @@ public class DeliveryFailedEventConsumer : IConsumer<DeliveryFailedEvent>
             });
             await _db.SaveChangesAsync();
 
-            // сброс после отправки алерта, чтобы 4-е/5-е подряд падение не слало повторные алерты
+            // сброс после алерта — следующее накопление N падений вызовет новый алерт
             Interlocked.Exchange(ref DeliveryFailureState.Count, 0);
         }
     }
