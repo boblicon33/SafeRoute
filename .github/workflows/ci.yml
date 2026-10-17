@@ -36,4 +36,4 @@ jobs:
 
       # test — запускает интеграционные тесты (Testcontainers сам поднимет БД)
       - name: Test
-        run: dotnet test src/SafeRoute.slnx --no-build --verbosity normal
+        run: dotnet test tests/SafeRoute.OrderService.Tests/SafeRoute.OrderService.Tests.csproj --no-build --verbosity normal
