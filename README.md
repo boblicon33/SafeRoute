@@ -8,6 +8,7 @@
 
 ## 🏗 Архитектура
 
+```mermaid
 graph TD
     Client[Клиент / Swagger] -->|POST /orders| OS[Order Service (Web API)]
     
@@ -43,7 +44,8 @@ graph TD
     class DS,MS worker;
     class DB_OS,DB_DS,DB_MS,OB_OS db;
     class RMQ broker;
-    
+```
+
 Система состоит из трех независимых микросервисов, общающихся асинхронно через брокер сообщений:
 
 1. **Order Service (Web API)**: Принимает заказы, сохраняет их в базу данных и публикует событие `OrderCreatedEvent`.
