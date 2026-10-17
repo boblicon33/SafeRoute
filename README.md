@@ -69,7 +69,7 @@ graph TD
 
 ## 🚀 Как запустить проект
 
-Вся инфраструктура и сервисы упакованы в Docker. Для запуска потребуется только установленный **Docker Desktop**.
+Для запуска потребуется только установленный **Docker Desktop**.
 
 1. Клонируйте репозиторий и перейдите в папку проекта:
 ```bash
@@ -83,6 +83,7 @@ graph TD
 3. Дождитесь сборки контейнеров (займет минуту).
 
 🔗 Доступные сервисы после запуска:
+
 Swagger (Order Service): http://localhost:5057/swagger
 
 Health Check (Order): http://localhost:5057/health
@@ -102,7 +103,6 @@ RabbitMQ Management UI: http://localhost:15672 (guest / guest)
    docker logs saferoute-monitor-service
    ```
 
-Тестирование
 В проекте настроены интеграционные тесты, которые поднимают БД в Docker во время тестов.
 
 Запуск тестов локально:
