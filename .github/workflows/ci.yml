@@ -1,0 +1,35 @@
+# Имя workflow (показывается в GitHub Actions)
+name: CI
+
+# on — когда запускать: при push и при pull_request в ветку main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# jobs — набор задач; build — единственный джоб
+jobs:
+  build:
+    # runs-on — операционная система GitHub Runner
+    runs-on: ubuntu-latest
+
+    # steps — шаги, выполняются сверху вниз
+    steps:
+      # checkout — скачивает код репозитория на runner
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # setup-dotnet — устанавливает .NET SDK (10.0.x)
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # restore — восстанавливает NuGet-пакеты
+      - name: Restore dependencies
+        run: dotnet restore src/SafeRoute.slnx
+
+      # build — компилирует в Release без повторного restore
+      - name: Build
+        run: dotnet build src/SafeRoute.slnx --no-restore --configuration Release
