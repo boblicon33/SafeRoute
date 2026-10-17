@@ -15,7 +15,8 @@ public class DeliveryDbContextFactory : IDesignTimeDbContextFactory<DeliveryDbCo
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         var optionsBuilder = new DbContextOptionsBuilder<DeliveryDbContext>();
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseNpgsql(connectionString,
+            b => b.MigrationsHistoryTable("__EFMigrationsHistory", "delivery"));
 
         return new DeliveryDbContext(optionsBuilder.Options);
     }

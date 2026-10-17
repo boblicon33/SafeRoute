@@ -11,6 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d saferoute_shop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - saferoute-network
 
@@ -24,6 +30,72 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    networks:
+      - saferoute-network
+
+  # Web API: заказы, Swagger, публикация OrderCreatedEvent
+  order-service:
+    build:
+      context: ../src
+      dockerfile: SafeRoute.OrderService/Dockerfile
+    container_name: saferoute-order-service
+    ports:
+      - "5057:5057"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres-db;Port=5432;Database=saferoute_shop;Username=user;Password=root"
+      ConnectionStrings__RabbitMq: "amqp://guest:guest@rabbitmq:5672/"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - saferoute-network
+
+  # Worker: консьюмер OrderCreatedEvent, схема delivery
+  delivery-service:
+    build:
+      context: ../src
+      dockerfile: SafeRoute.DeliveryService/Dockerfile
+    container_name: saferoute-delivery-service
+    ports:
+      - "5001:5001"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres-db;Port=5432;Database=saferoute_shop;Username=user;Password=root"
+      ConnectionStrings__RabbitMq: "amqp://guest:guest@rabbitmq:5672/"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - saferoute-network
+
+  # Worker: мониторинг падений, схема monitor, Telegram-алерты
+  monitor-service:
+    build:
+      context: ../src
+      dockerfile: SafeRoute.MonitorService/Dockerfile
+    container_name: saferoute-monitor-service
+    ports:
+      - "5002:5002"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres-db;Port=5432;Database=saferoute_shop;Username=user;Password=root;Search Path=monitor"
+      ConnectionStrings__RabbitMq: "amqp://guest:guest@rabbitmq:5672/"
+      Telegram__BotToken: "${TELEGRAM_BOT_TOKEN:-}"
+      Telegram__ChatId: "${TELEGRAM_CHAT_ID:-}"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - saferoute-network
 

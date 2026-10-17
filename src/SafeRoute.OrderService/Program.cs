@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations;
 using SafeRoute.Shared.Events;
 using MassTransit;
 using Serilog;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+var rabbitMqUri = builder.Configuration.GetConnectionString("RabbitMq")
+    ?? "amqp://guest:guest@localhost:5672/";
+
 builder.Services.AddMassTransit(x =>
 {
     x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
@@ -36,15 +42,24 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
+        cfg.Host(new Uri(rabbitMqUri));
     });
 });
 
+var pgConnection = builder.Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
+var rabbitConnection = builder.Configuration.GetConnectionString("RabbitMq") ?? string.Empty;
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(pgConnection, name: "postgres")
+    .AddRabbitMQ(_ => new ConnectionFactory { Uri = new Uri(rabbitConnection) }.CreateConnectionAsync(), name: "rabbitmq");
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
+    db.Database.Migrate();
+}
 
 // включаем сваггер в девелопмент режиме
 if (app.Environment.IsDevelopment())
@@ -103,6 +118,11 @@ app.MapGet("/orders", async (OrderDbContext db) =>
         .ToListAsync();
     
     return Results.Ok(orders);
+});
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
 app.Run();
