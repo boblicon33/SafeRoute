@@ -33,11 +33,15 @@
 
 Вся инфраструктура и сервисы упакованы в Docker. Для запуска потребуется только установленный **Docker Desktop**.
 
-1. Клонируйте репозиторий:
+1. Клонируйте репозиторий и перейдите в папку проекта:
+```bash
    git clone https://github.com/boblicon33/SafeRoute.git
    cd SafeRoute
+```
 2. Запустите проект одной командой:
-    docker compose -f infra/docker-compose.yml up -d --build
+```bash
+   docker compose -f infra/docker-compose.yml up -d --build
+```
 3. Дождитесь сборки контейнеров (займет минуту).
 
 🔗 Доступные сервисы после запуска:
@@ -55,10 +59,26 @@ RabbitMQ Management UI: http://localhost:15672 (guest / guest)
 1. Откройте Swagger по ссылке выше.
 2. Отправьте POST /orders с телом { "productName": "iPhone", "quantity": 1 }.
 3. Первые 3 заказа будут успешно обработаны. Создайте 4-й и 5-й заказы.
-4. Посмотрите в логи Monitor Service (docker logs saferoute-monitor-service).
+4. Посмотрите в логи Monitor Service:
+   ```bash
+   docker logs saferoute-monitor-service
+   ```
 
 Тестирование
 В проекте настроены интеграционные тесты, которые поднимают БД в Docker во время тестов.
 
 Запуск тестов локально:
+```bash
 dotnet test tests/SafeRoute.OrderService.Tests/SafeRoute.OrderService.Tests.csproj
+```
+
+
+## 📂 Структура проекта
+├── .github/workflows/   # CI пайплайн (сборка + тесты)
+├── infra/               # Docker Compose, конфигурация инфраструктуры
+├── src/
+│   ├── SafeRoute.OrderService/
+│   ├── SafeRoute.DeliveryService/
+│   ├── SafeRoute.MonitorService/
+│   └── SafeRoute.Shared/ # Общие контракты (события)
+└── tests/               # Интеграционные тесты
