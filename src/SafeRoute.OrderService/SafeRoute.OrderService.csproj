@@ -28,4 +28,8 @@
     <ProjectReference Include="..\SafeRoute.Shared\SafeRoute.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="SafeRoute.OrderService.Tests" />
+  </ItemGroup>
+
 </Project>

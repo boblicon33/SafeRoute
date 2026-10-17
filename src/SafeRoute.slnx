@@ -3,4 +3,5 @@
   <Project Path="SafeRoute.DeliveryService/SafeRoute.DeliveryService.csproj" />
   <Project Path="SafeRoute.MonitorService/SafeRoute.MonitorService.csproj" />
   <Project Path="SafeRoute.Shared/SafeRoute.Shared.csproj" />
+  <Project Path="../tests/SafeRoute.OrderService.Tests/SafeRoute.OrderService.Tests.csproj" />
 </Solution>

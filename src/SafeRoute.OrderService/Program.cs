@@ -101,7 +101,7 @@ app.MapPost("/orders", async (OrderRequest request, OrderDbContext db,
 });
 
 
-app.MapGet("/orders/id:{guid}", async (Guid id, OrderDbContext db) =>
+app.MapGet("/orders/{id:guid}", async (Guid id, OrderDbContext db) =>
 {
     var order = await db.Orders.FindAsync(id);
     if (order == null) return Results.NotFound();

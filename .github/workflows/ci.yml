@@ -33,3 +33,7 @@ jobs:
       # build — компилирует в Release без повторного restore
       - name: Build
         run: dotnet build src/SafeRoute.slnx --no-restore --configuration Release
+
+      # test — запускает интеграционные тесты (Testcontainers сам поднимет БД)
+      - name: Test
+        run: dotnet test src/SafeRoute.slnx --no-build --verbosity normal
