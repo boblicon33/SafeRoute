@@ -10,7 +10,7 @@
 
 ```mermaid
 graph TD
-    Client[Клиент / Swagger] -->|POST /orders| OS[Order Service (Web API)]
+    Client[Клиент / Swagger] -->|POST /orders| OS["Order Service (Web API)"]
     
     subgraph "Схема public"
         OS -->|Сохраняет заказ| DB_OS[(PostgreSQL)]
@@ -19,7 +19,7 @@ graph TD
     
     OB_OS -.->|Фоновый процесс MassTransit| RMQ((RabbitMQ))
     
-    RMQ -->|OrderCreatedEvent| DS[Delivery Service (Worker)]
+    RMQ -->|OrderCreatedEvent| DS["Delivery Service (Worker)"]
     
     subgraph "Схема delivery"
         DS -->|Сохраняет статус| DB_DS[(PostgreSQL)]
@@ -27,7 +27,7 @@ graph TD
     
     DS -.->|DeliveryFailedEvent| RMQ
     
-    RMQ -->|DeliveryFailedEvent| MS[Monitor Service (Worker)]
+    RMQ -->|DeliveryFailedEvent| MS["Monitor Service (Worker)"]
     
     subgraph "Схема monitor"
         MS -->|Сохраняет инцидент| DB_MS[(PostgreSQL)]
