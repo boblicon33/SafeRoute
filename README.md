@@ -109,14 +109,3 @@ RabbitMQ Management UI: http://localhost:15672 (guest / guest)
 ```bash
 dotnet test tests/SafeRoute.OrderService.Tests/SafeRoute.OrderService.Tests.csproj
 ```
-
-
-## 📂 Структура проекта
-├── .github/workflows/   # CI пайплайн (сборка + тесты)
-├── infra/               # Docker Compose, конфигурация инфраструктуры
-├── src/
-│   ├── SafeRoute.OrderService/
-│   ├── SafeRoute.DeliveryService/
-│   ├── SafeRoute.MonitorService/
-│   └── SafeRoute.Shared/ # Общие контракты (события)
-└── tests/               # Интеграционные тесты
