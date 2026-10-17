@@ -36,18 +36,22 @@
 1. Клонируйте репозиторий:
    git clone https://github.com/boblicon33/SafeRoute.git
    cd SafeRoute
-Запустите проект одной командой:
+2. Запустите проект одной командой:
     docker compose -f infra/docker-compose.yml up -d --build
-Дождитесь сборки контейнеров (займет минуту).
+3. Дождитесь сборки контейнеров (займет минуту).
 
 🔗 Доступные сервисы после запуска:
 Swagger (Order Service): http://localhost:5057/swagger
+
 Health Check (Order): http://localhost:5057/health
+
 Health Check (Delivery): http://localhost:5001/health
+
 Health Check (Monitor): http://localhost:5002/health
+
 RabbitMQ Management UI: http://localhost:15672 (guest / guest)
 
-🧪 Как проверить работу системы
+## 🧪 Как проверить работу системы
 1. Откройте Swagger по ссылке выше.
 2. Отправьте POST /orders с телом { "productName": "iPhone", "quantity": 1 }.
 3. Первые 3 заказа будут успешно обработаны. Создайте 4-й и 5-й заказы.
@@ -58,14 +62,3 @@ RabbitMQ Management UI: http://localhost:15672 (guest / guest)
 
 Запуск тестов локально:
 dotnet test tests/SafeRoute.OrderService.Tests/SafeRoute.OrderService.Tests.csproj
-
-📂 Структура проекта
-text
-├── .github/workflows/   # CI пайплайн (сборка + тесты)
-├── infra/               # Docker Compose, конфигурация инфраструктуры
-├── src/
-│   ├── SafeRoute.OrderService/
-│   ├── SafeRoute.DeliveryService/
-│   ├── SafeRoute.MonitorService/
-│   └── SafeRoute.Shared/ # Общие контракты (события)
-└── tests/               # Интеграционные тесты
