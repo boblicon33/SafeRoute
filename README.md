@@ -8,6 +8,42 @@
 
 ## 🏗 Архитектура
 
+graph TD
+    Client[Клиент / Swagger] -->|POST /orders| OS[Order Service (Web API)]
+    
+    subgraph "Схема public"
+        OS -->|Сохраняет заказ| DB_OS[(PostgreSQL)]
+        OS -.->|Публикует в Outbox| OB_OS[(Outbox Table)]
+    end
+    
+    OB_OS -.->|Фоновый процесс MassTransit| RMQ((RabbitMQ))
+    
+    RMQ -->|OrderCreatedEvent| DS[Delivery Service (Worker)]
+    
+    subgraph "Схема delivery"
+        DS -->|Сохраняет статус| DB_DS[(PostgreSQL)]
+    end
+    
+    DS -.->|DeliveryFailedEvent| RMQ
+    
+    RMQ -->|DeliveryFailedEvent| MS[Monitor Service (Worker)]
+    
+    subgraph "Схема monitor"
+        MS -->|Сохраняет инцидент| DB_MS[(PostgreSQL)]
+    end
+    
+    MS -->|Алерт при 3-х ошибках| TG[Telegram Bot API]
+
+    classDef api fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px;
+    classDef worker fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px;
+    classDef db fill:#e8f5e9,stroke:#4caf50,stroke-width:2px;
+    classDef broker fill:#fff3e0,stroke:#ff9800,stroke-width:2px;
+    
+    class OS api;
+    class DS,MS worker;
+    class DB_OS,DB_DS,DB_MS,OB_OS db;
+    class RMQ broker;
+    
 Система состоит из трех независимых микросервисов, общающихся асинхронно через брокер сообщений:
 
 1. **Order Service (Web API)**: Принимает заказы, сохраняет их в базу данных и публикует событие `OrderCreatedEvent`.
